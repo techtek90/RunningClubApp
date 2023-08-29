@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RunGroupWebApp.Data;
 using RunGroupWebApp.Interfaces;
 using RunGroupWebApp.Models;
+using RunGroupWebApp.ViewModels;
 
 namespace RunGroupWebApp.Controllers
 {
@@ -10,9 +11,11 @@ namespace RunGroupWebApp.Controllers
     {
         //private readonly AppDbContext _context;
         private readonly IRaceRepo _raceRepo;
-        public RaceController(IRaceRepo raceRepo)
+        private readonly IPhotoService _photoService;
+        public RaceController(IRaceRepo raceRepo, IPhotoService photoService)
         {
             _raceRepo = raceRepo;
+            _photoService = photoService;
         }
         public async Task <IActionResult> Index()
         {
@@ -28,12 +31,31 @@ namespace RunGroupWebApp.Controllers
         }
         
         [HttpPost]
-        public async Task<IActionResult> Create(Race race)
+        public async Task<IActionResult> Create(CreateRaceViewModel raceVM)
         {
-            if (!ModelState.IsValid)
-                return View();
-            _raceRepo.Add(race);
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                var resimYuklemeSonucu = await _photoService.AddPhotoAsync(raceVM.Image);
+                var race = new Race()
+                {
+                    Title = raceVM.Title,
+                    Description = raceVM.Description,
+                    Image = resimYuklemeSonucu.Url.ToString(),
+                    Address = new Address()
+                    {
+                        City = raceVM.Address.City,
+                        State = raceVM.Address.State,
+                        Street = raceVM.Address.Street
+                    }
+                };
+                _raceRepo.Add(race);
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                ModelState.AddModelError("", "Photo upload failed");
+            }
+            return View(raceVM);
 
         }
 

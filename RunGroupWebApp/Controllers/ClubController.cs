@@ -18,9 +18,9 @@ namespace RunGroupWebApp.Controllers
             _photoService = photoService;
         }
         public async Task<IActionResult> Index()   //Controller
-        {
-            //var clubs = _context.Clubs.ToList(); //Model
-            var clubs = _clubRepo.GetAllClub();
+        {            
+                //var clubs = _context.Clubs.ToList(); //Model
+            var clubs = _clubRepo.GetAllClub();           
             return View(clubs);                    //View
         }
 
